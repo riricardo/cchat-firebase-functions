@@ -1,0 +1,55 @@
+name: Firebase CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
+
+jobs:
+  ci:
+    name: Run CI
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - name: Install functions dependencies
+        run: |
+          cd functions
+          npm Install
+
+  deploy:
+    name: Deploy Firebase Functions
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Install dependencies
+        run: |
+          cd functions
+          npm install
+
+      - name: Deploy to Firebase
+        run: firebase deploy --only functions --token ${{ secrets.FIREBASE_TOKEN }}
