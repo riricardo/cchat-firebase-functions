@@ -8,6 +8,9 @@ initializeApp();
 const es = createElasticClient();
 
 export const indexUserOnCreate = onDocumentCreated(
+  {
+    region: "europe-west2",
+  },
   "users/{userId}",
   async (event) => {
     const userId = event.params.userId;
@@ -34,33 +37,38 @@ export const indexUserOnCreate = onDocumentCreated(
   }
 );
 
-export const searchUsers = onRequest(async (req, res) => {
-  const q = req.query.q || "";
+export const searchUsers = onRequest(
+  {
+    region: "europe-west2",
+  },
+  async (req, res) => {
+    const q = req.query.q || "";
 
-  try {
-    const result = await es.search({
-      index: "cchat-users",
-      query: {
-        match: {
-          name: {
-            query: q,
-            fuzziness: "AUTO",
+    try {
+      const result = await es.search({
+        index: "cchat-users",
+        query: {
+          match: {
+            name: {
+              query: q,
+              fuzziness: "AUTO",
+            },
           },
         },
-      },
-    });
+      });
 
-    const users = result.hits.hits.map((doc) => ({
-      id: doc._id,
-      ...doc._source,
-    }));
+      const users = result.hits.hits.map((doc) => ({
+        id: doc._id,
+        ...doc._source,
+      }));
 
-    res.json(users);
-  } catch (error) {
-    if (error.meta?.body?.error?.type === "index_not_found_exception") {
-      return res.json([]);
+      res.json(users);
+    } catch (error) {
+      if (error.meta?.body?.error?.type === "index_not_found_exception") {
+        return res.json([]);
+      }
+
+      res.status(500).json({ message: error.message });
     }
-
-    res.status(500).json({ message: error.message });
   }
-});
+);
