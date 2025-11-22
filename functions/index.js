@@ -18,10 +18,6 @@ export const indexUser = onCall(
 
     const { id, name, profileImageUrl } = request.data;
 
-    if (!id || !name) {
-      throw new HttpsError("invalid-argument", "Missing id or name");
-    }
-
     const doc = {
       name,
       profileImageUrl: profileImageUrl || null,
