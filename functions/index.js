@@ -21,7 +21,7 @@ export const indexUser = onCall(
     const doc = {
       id,
       name,
-      profileImageUrl: profileImageUrl || null,
+      profileImageUrl,
     };
 
     try {
@@ -29,6 +29,35 @@ export const indexUser = onCall(
         index: "cchat-users",
         id,
         document: doc,
+      });
+
+      return { message: "User indexed successfully" };
+    } catch (error) {
+      console.error(error);
+      throw new HttpsError("internal", error.message);
+    }
+  }
+);
+
+export const updateUserImage = onCall(
+  {
+    region: "europe-west2",
+  },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "User must be logged in");
+    }
+
+    const { id, profileImageUrl } = request.data;
+
+    try {
+      await es.update({
+        index: "cchat-users",
+        id,
+        doc: {
+          profileImageUrl,
+        },
       });
 
       return { message: "User indexed successfully" };
