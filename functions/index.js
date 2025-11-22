@@ -19,11 +19,10 @@ export const indexUser = onCall(
     const { id, name, profileImageUrl } = request.data;
 
     const doc = {
+      id,
       name,
       profileImageUrl: profileImageUrl || null,
     };
-
-    console.log("Indexing user via callable:", doc);
 
     try {
       await es.index({
@@ -72,10 +71,7 @@ export const searchUsers = onCall(
         query,
       });
 
-      const users = result.hits.hits.map((doc) => ({
-        id: doc._id,
-        ...doc._source,
-      }));
+      const users = result.hits.hits.map((doc) => doc._source);
 
       return users;
     } catch (error) {
