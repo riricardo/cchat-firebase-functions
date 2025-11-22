@@ -57,16 +57,23 @@ export const searchUsers = onCall(
     const q = request.data.q || "";
 
     try {
-      const result = await es.search({
-        index: "cchat-users",
-        query: {
-          match: {
+      let query;
+
+      if (!q || q.trim() === "") {
+        query = { match_all: {} };
+      } else {
+        query = {
+          wildcard: {
             name: {
-              query: q,
-              fuzziness: "AUTO",
+              value: `*${q.toLowerCase()}*`,
             },
           },
-        },
+        };
+      }
+
+      const result = await es.search({
+        index: "cchat-users",
+        query,
       });
 
       const users = result.hits.hits.map((doc) => ({
